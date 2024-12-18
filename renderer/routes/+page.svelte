@@ -1,44 +1,151 @@
 <script lang="ts">
-	import electronLogo from '$lib/assets/electron.svg';
-	import svelteLogo from '$lib/assets/svelteKit.svg';
-	import typescriptLogo from '$lib/assets/typescript.svg';
-	import viteLogo from '$lib/assets/vite.svg';
-	import tailwindcssLogo from '$lib/assets/tailwindcss.svg';
-	import Counter from '$lib/Counter.svelte';
+  import { writable } from 'svelte/store';
+
+  // this state machines represents the possible transitions for a TODO
+  const StateTransitions: Record<ColumnType, ColumnType[]> = {
+    'todo': ['ongoing'],
+    'ongoing': ['done', 'todo'],
+    'done': ['ongoing']
+  };
+
+  const columns: Column[] = [
+    { id: 'todo', title: 'TODO' },
+    { id: 'ongoing', title: 'ONGOING' },
+    { id: 'done', title: 'DONE' }
+  ];
+
+  const todoStore: Writable<Todo[]> = writable([
+    {
+      id: 1,
+      title: 'Implement authentication',
+      creator: 'John Doe',
+      column: 'todo'
+    },
+    {
+      id: 2,
+      title: 'Create database schema',
+      creator: 'Jane Smith',
+      column: 'todo'
+    }
+  ]);
+
+  let draggedCard: Todo | null = null;
+  let draggedOverColumn: ColumnType | null = null;
+  let nextId = 3;
+  let newCardTitle = ""
+
+  function handleDragStart(card: Todo): void {
+    draggedCard = card;
+  }
+
+  function handleDragOver(e: DragEvent, targetColumn: ColumnType): void {
+    e.preventDefault();
+    draggedOverColumn = targetColumn;
+
+    // remove the mouse effect on invalid transitions
+    if (draggedCard && !isValidTransition(draggedCard.column, targetColumn)) {
+      e.dataTransfer!.dropEffect = 'none';
+    }
+  }
+
+  function handleDragLeave(): void {
+    draggedOverColumn = null;
+  }
+
+  function isValidTransition(fromState: ColumnType, toState: ColumnType): boolean {
+    if (fromState === toState) {
+      return true;
+    }
+
+    return StateTransitions[fromState]?.includes(toState);
+  }
+
+  function handleDrop(targetColumn: ColumnType): void {
+    if (!draggedCard) {
+      return;
+    }
+
+    if (isValidTransition(draggedCard.column, targetColumn)) {
+      todoStore.update(todos =>
+        todos.map(todo =>
+          todo.id === draggedCard!.id
+            ? { ...todo, column: targetColumn }
+          : todo
+        )
+      );
+    }
+    draggedCard = null;
+    draggedOverColumn = null;
+  }
+
+  function handleDragEnd(): void {
+    draggedCard = null;
+    draggedOverColumn = null;
+  }
+
+  function addNewCard(targetColumn: ColumnType): void {
+    if (newCardTitle.trim()) {
+      todoStore.update(todos => [
+        ...todos,
+        {
+          id: nextId++,
+          title: newCardTitle.trim(),
+          creator: "Anonymous",
+          column: targetColumn
+        }
+      ]);
+      newCardTitle = "";
+    }
+  }
 </script>
 
-<div class='max-w-7xl mx-auto px-16 py-20'>
-	<div class='flex gap-16 flex-wrap justify-center *:shrink-0 *:transition *:duration-500 [&>*:hover]:duration-100'>
-		<a id='vite' href='https://vitejs.dev' target="_blank" rel="noreferrer" class='hover:drop-shadow-[0_0_2em_#646cffaa]'>
-			<img src={viteLogo} class='w-24 h-24' alt='Vite Logo' />
-		</a>
-		<a id='typescript' href='https://www.typescriptlang.org' target="_blank" rel="noreferrer" class='hover:drop-shadow-[0_0_2em_#3178c6aa]'>
-			<img src={typescriptLogo} class='w-24 h-24' alt='Typescript Logo' />
-		</a>
-		<a id='electronForge' href='https://www.electronforge.io/' target="_blank" rel="noreferrer" class='hover:drop-shadow-[0_0_2em_#2f3242aa]'>
-			<img src={electronLogo} class='w-24 h-24' alt='Electron Forge Logo' />
-		</a>
-		<a id='svelteKit' href='https://kit.svelte.dev/' target="_blank" rel="noreferrer" class='hover:drop-shadow-[0_0_2em_#ff3e00aa]'>
-			<img src={svelteLogo} class='w-24 h-24' alt='Svelte Kit Logo' />
-		</a>
-		<a id='tailwind' href='https://tailwindcss.com/' target="_blank" rel="noreferrer" class='hover:drop-shadow-[0_0_2em_#19b5baaa]'>
-			<img src={tailwindcssLogo} class='w-24 h-24' alt='Tailwind CSS Logo' />
-		</a>
-	</div>
-	<p class='mt-16 text-gray-600 dark:text-gray-400 text-center'>
-		Click on the logos to learn more
-	</p>
-	<h1 class='text-center text-5xl leading-tight *:transition *:duration-500'>
-		<span class='[*:has(#vite:hover)~*>&]:duration-100 [*:has(#vite:hover)~*>&]:text-indigo-500'>Vite</span> +
-		<span class='[*:has(#typescript:hover)~*>&]:duration-100 [*:has(#typescript:hover)~*>&]:text-blue-500'>Typescript</span> +
-		<span class='[*:has(#electronForge:hover)~*>&]:duration-100 [*:has(#electronForge:hover)~*>&]:text-slate-500'>Electron Forge</span> +
-		<span class='[*:has(#svelteKit:hover)~*>&]:duration-100 [*:has(#svelteKit:hover)~*>&]:text-orange-500'>SvelteKit</span> +
-		<span class='[*:has(#tailwind:hover)~*>&]:duration-100 [*:has(#tailwind:hover)~*>&]:text-sky-500'>Tailwind CSS</span>
-	</h1>
-	<div class='m-auto w-fit mt-16'>
-		<Counter />
-	</div>
-	<div class='m-auto w-fit mt-16'>
-		<a href='/test'>Test Page</a>
-	</div>
+<div class="board">
+  {#each columns as column}
+    <div
+      class="column"
+      class:invalid-target={draggedCard && draggedOverColumn === column.id && !isValidTransition(draggedCard.column, column.id)}
+      on:dragover={(e) => handleDragOver(e, column.id)}
+      on:dragleave={handleDragLeave}
+      on:drop={() => handleDrop(column.id)}
+      on:dragend={handleDragEnd}
+      >
+      <div class="column-header">
+        <h2>{column.title}</h2>
+        <span class="task-count">
+          {$todoStore.filter(card => card.column === column.id).length}
+        </span>
+      </div>
+
+      <div class="cards">
+        {#if $todoStore.filter(card => card.column === column.id).length > 0}
+          {#each $todoStore.filter(card => card.column === column.id) as card}
+            <div
+              class="card"
+              draggable="true"
+              on:dragstart={() => handleDragStart(card)}
+              >
+              <h3>{card.title}</h3>
+              <div class="card-meta">
+                <span>Created by: {card.creator}</span>
+              </div>
+            </div>
+          {/each}
+        {/if}
+      </div>
+
+      {#if column.id === 'todo'}
+        <div class="add-card-section">
+          <input
+            type="text"
+            placeholder="Enter card title..."
+            bind:value={newCardTitle}
+            class="add-card-input"
+            />
+          <button on:click={() => addNewCard(column.id)} class="add-card-button">
+            + Add Card
+          </button>
+        </div>
+      {/if}
+    </div>
+  {/each}
 </div>

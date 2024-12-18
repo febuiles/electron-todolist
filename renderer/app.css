@@ -1,20 +1,118 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-:root {
-	font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-
-	font-synthesis: none;
-	text-rendering: optimizeLegibility;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
+.board {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  min-height: 100vh;
+  background: #f1f2f4;
+  font-family: system-ui, Helvetica, Arial, sans-serif;
 }
 
-body {
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
-	width: 100vw;
-	height: 100vh;
+.column {
+  flex: 1;
+  min-width: 250px;
+  background: #ebecf0;
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.column-header h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.task-count {
+  background: #dfe1e6;
+  border-radius: 12px;
+  padding: 3px 8px;
+  font-size: 0.8rem;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.card {
+  background: white;
+  border-radius: 4px;
+  padding: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  cursor: grab;
+  transition: transform 0.2s;
+}
+
+.card h3 {
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+  color: #6b778c;
+}
+
+.card:active {
+  cursor: grabbing;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.invalid-target {
+  opacity: 0.5;
+  background: #ffdede;
+}
+
+.add-card-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.add-card-input {
+
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  transition: border 0.2s ease-in-out;
+}
+
+.add-card-input:focus {
+  border: 1px solid #4CAF50;
+}
+
+.add-card-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.add-card-button:hover {
+  background-color: #45a049;
 }
