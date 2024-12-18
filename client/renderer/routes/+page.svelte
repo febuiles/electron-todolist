@@ -69,7 +69,7 @@
       todoStore.update(todos =>
         todos.map(todo =>
           todo.id === draggedCard!.id
-            ? { ...todo, column: targetColumn }
+            ? { ...todo, column: targetColumn, lastUpdated: new Date().toLocaleString() }
           : todo
         )
       );
@@ -91,7 +91,8 @@
           id: nextId++,
           title: newCardTitle.trim(),
           creator: "Anonymous",
-          column: targetColumn
+          column: targetColumn,
+          lastUpdated: new Date().toLocaleString()
         }
       ]);
       newCardTitle = "";
@@ -127,6 +128,7 @@
               <h3>{card.title}</h3>
               <div class="card-meta">
                 <span>Created by: {card.creator}</span>
+                <span>Last updated: {card.lastUpdated}</span>
               </div>
             </div>
           {/each}
