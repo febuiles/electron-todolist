@@ -58,8 +58,8 @@ app.on('ready', () => {
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 700,
+    width: 1400,
+    height: 900,
     minWidth: 700,
     minHeight: 400
   });

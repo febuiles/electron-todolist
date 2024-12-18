@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Column from '../lib/Column.svelte';
   import { writable } from 'svelte/store';
 
   // this state machines represents the possible transitions for a TODO
@@ -14,28 +15,14 @@
     { id: 'done', title: 'DONE' }
   ];
 
-  const todoStore: Writable<Todo[]> = writable([
-    {
-      id: 1,
-      title: 'Implement authentication',
-      creator: 'John Doe',
-      column: 'todo'
-    },
-    {
-      id: 2,
-      title: 'Create database schema',
-      creator: 'Jane Smith',
-      column: 'todo'
-    }
-  ]);
+  const todoStore = writable([]);
 
-  let draggedCard: Todo | null = null;
+  let draggedTodo: Todo | null = null;
   let draggedOverColumn: ColumnType | null = null;
-  let nextId = 3;
-  let newCardTitle = ""
+  let newTodoTitle = ""
 
-  function handleDragStart(card: Todo): void {
-    draggedCard = card;
+  function handleDragStart(todo: Todo): void {
+    draggedTodo = todo;
   }
 
   function handleDragOver(e: DragEvent, targetColumn: ColumnType): void {
@@ -43,7 +30,7 @@
     draggedOverColumn = targetColumn;
 
     // remove the mouse effect on invalid transitions
-    if (draggedCard && !isValidTransition(draggedCard.column, targetColumn)) {
+    if (draggedTodo && !isValidTransition(draggedTodo.column, targetColumn)) {
       e.dataTransfer!.dropEffect = 'none';
     }
   }
@@ -61,94 +48,89 @@
   }
 
   function handleDrop(targetColumn: ColumnType): void {
-    if (!draggedCard) {
-      return;
-    }
+    if (!draggedTodo) { return; }
 
-    if (isValidTransition(draggedCard.column, targetColumn)) {
-      todoStore.update(todos =>
-        todos.map(todo =>
-          todo.id === draggedCard!.id
+    if (isValidTransition(draggedTodo.column, targetColumn)) {
+      updateTodoColumn(draggedTodo.id, targetColumn);
+
+      todoStore.update((todos) =>
+        todos.map((todo) =>
+          todo.id === draggedTodo!.id
             ? { ...todo, column: targetColumn, lastUpdated: new Date().toLocaleString() }
           : todo
         )
       );
     }
-    draggedCard = null;
+
+    draggedTodo = null;
     draggedOverColumn = null;
   }
 
   function handleDragEnd(): void {
-    draggedCard = null;
+    draggedTodo = null;
     draggedOverColumn = null;
   }
 
-  function addNewCard(targetColumn: ColumnType): void {
-    if (newCardTitle.trim()) {
-      todoStore.update(todos => [
-        ...todos,
-        {
-          id: nextId++,
-          title: newCardTitle.trim(),
-          creator: "Anonymous",
-          column: targetColumn,
-          lastUpdated: new Date().toLocaleString()
-        }
-      ]);
-      newCardTitle = "";
+  async function fetchTodos() {
+    const response = await fetch('http://localhost:8080/todos');
+    const todos = await response.json();
+    todoStore.set(todos);
+  }
+
+
+  async function addNewTodo(targetColumn: ColumnType, newTodoTitle: string): Promise<void> {
+    if (newTodoTitle.trim()) {
+      const newTodo = {
+        title: newTodoTitle.trim(),
+        creator: 'Anonymous',
+        column: targetColumn,
+        lastUpdated: new Date().toLocaleString(),
+      };
+
+      const response = await fetch('http://localhost:8080/todos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTodo),
+      });
+
+      const createdTodo = await response.json();
+      todoStore.update((todos) => [...todos, createdTodo]);
     }
   }
+
+  async function updateTodoColumn(todoId: number, targetColumn: ColumnType): Promise<void> {
+    const lastUpdated = new Date().toLocaleString();
+
+    await fetch('http://localhost:8080/todos/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: todoId, column: targetColumn, lastUpdated }),
+    });
+
+    todoStore.update((todos) =>
+      todos.map((todo) =>
+        todo.id === todoId ? { ...todo, column: targetColumn, lastUpdated } : todo
+      )
+    );
+  }
+
+  fetchTodos(); // Fetch the initial list of todos
 </script>
 
 <div class="board">
   {#each columns as column}
-    <div
-      class="column"
-      class:invalid-target={draggedCard && draggedOverColumn === column.id && !isValidTransition(draggedCard.column, column.id)}
-      on:dragover={(e) => handleDragOver(e, column.id)}
-      on:dragleave={handleDragLeave}
-      on:drop={() => handleDrop(column.id)}
-      on:dragend={handleDragEnd}
-      >
-      <div class="column-header">
-        <h2>{column.title}</h2>
-        <span class="task-count">
-          {$todoStore.filter(card => card.column === column.id).length}
-        </span>
-      </div>
-
-      <div class="cards">
-        {#if $todoStore.filter(card => card.column === column.id).length > 0}
-          {#each $todoStore.filter(card => card.column === column.id) as card}
-            <div
-              class="card"
-              draggable="true"
-              on:dragstart={() => handleDragStart(card)}
-              >
-              <h3>{card.title}</h3>
-              <div class="card-meta">
-                <span>Created by: {card.creator}</span>
-                <span>Last updated: {card.lastUpdated}</span>
-              </div>
-            </div>
-          {/each}
-        {/if}
-      </div>
-
-      {#if column.id === 'todo'}
-        <div class="add-card-section">
-          <input
-            type="text"
-            placeholder="Enter new TODO..."
-            bind:value={newCardTitle}
-            class="add-card-input"
-            on:keydown={(e) => { if (e.key === 'Enter') addNewCard(column.id); }}
-          />
-          <button on:click={() => addNewCard(column.id)} class="add-card-button">
-            + Add Item
-          </button>
-        </div>
-      {/if}
-    </div>
+    <Column
+      {column}
+      todos={$todoStore}
+      {draggedTodo}
+      {draggedOverColumn}
+      handleDragOver={handleDragOver}
+      handleDragLeave={handleDragLeave}
+      handleDrop={handleDrop}
+      handleDragEnd={handleDragEnd}
+      handleDragStart={handleDragStart}
+      bind:newTodoTitle
+      addNewTodo={addNewTodo}
+    />
   {/each}
 </div>
