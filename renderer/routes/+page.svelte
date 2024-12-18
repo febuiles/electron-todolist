@@ -137,12 +137,13 @@
         <div class="add-card-section">
           <input
             type="text"
-            placeholder="Enter card title..."
+            placeholder="Enter new TODO..."
             bind:value={newCardTitle}
             class="add-card-input"
-            />
+            on:keydown={(e) => { if (e.key === 'Enter') addNewCard(column.id); }}
+          />
           <button on:click={() => addNewCard(column.id)} class="add-card-button">
-            + Add Card
+            + Add Item
           </button>
         </div>
       {/if}
