@@ -37,9 +37,19 @@
   let newTodoTitle: string = ""
 
   async function handleNewList() {
-    // TODO implement
-    const newList = await createTodolist(user.id);
-    getTodolist(newList.id);
+    if (!$userStore) return;
+
+    console.log("Current", $userStore.lastUsedTodolistId);
+
+    const newList = await createTodolist();
+
+    userStore.update((user) => {
+      if (!user) return null;
+      return { ...user, lastUsedTodolistId: newList.id };
+    });
+    console.log($userStore.lastUsedTodolistId);
+
+    getTodolist($userStore.lastUsedTodolistId);
   }
 
   async function handleShareList() {
@@ -182,6 +192,6 @@
       handleDragStart={handleDragStart}
       bind:newTodoTitle
       createTodo={createTodo}
-      />
-    {/each}
-  </div>
+    />
+  {/each}
+</div>

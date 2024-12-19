@@ -1,8 +1,9 @@
 import { app, BrowserWindow, protocol, net, ipcMain } from 'electron';
+import { writeFileSync } from 'fs';
 import path from 'path';
 import url from 'url';
 
-import { initializeUser } from './users'
+import { initializeUser, userFilePath } from './users'
 
 const scheme = 'app';
 const srcFolder = path.join(app.getAppPath(), `.vite/main_window/`);
@@ -22,10 +23,17 @@ protocol.registerSchemesAsPrivileged([
 
 app.on('ready', async () => {
   try {
-    let user = await initializeUser();
+    let user = await initializeUser()
 
     ipcMain.handle('get-user', () => {
-      console.log(user)
+      console.log("IPC get-user: ", user)
+      return user;
+    })
+
+    ipcMain.handle('update-user', (event, updatedUser) => {
+      console.log('IPC Updating user:', updatedUser);
+      user = updatedUser;
+      writeFileSync(userFilePath, JSON.stringify(user));
       return user;
     });
 

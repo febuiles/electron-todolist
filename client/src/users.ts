@@ -3,7 +3,8 @@ import path from 'path';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 const userDataPath = app.getPath('userData');
-const userFilePath = path.join(userDataPath, 'user.json');
+export const userFilePath = path.join(userDataPath, 'user.json');
+
 const app_host = "http://localhost:8080"
 
 export async function createUser() {
@@ -24,7 +25,6 @@ export async function createUser() {
 }
 
 export async function initializeUser() {
-  console.log(userFilePath)
   if (existsSync(userFilePath)) {
     const userData = readFileSync(userFilePath, 'utf-8');
     const user = JSON.parse(userData);

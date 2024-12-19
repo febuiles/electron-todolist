@@ -10,3 +10,9 @@ contextBridge.exposeInMainWorld('userAPI', {
     }
   },
 });
+
+contextBridge.exposeInMainWorld('electron', {
+  ipcRenderer: {
+    invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
+  },
+});
