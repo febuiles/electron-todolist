@@ -3,27 +3,36 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/rand"
-	"time"
-	"fmt"
 	"net/http"
-	"github.com/rs/cors"
+	"time"
+
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/rs/cors"
 )
+
+type TodoList struct {
+	ID     int    `json:"id"`
+	UserID int    `json:"user_id"`
+	Slug   string `json:"slug"`
+}
 
 type Todo struct {
 	ID          int    `json:"id"`
 	Title       string `json:"title"`
-	UserID      int `json:"user_id"`
+	UserID      int    `json:"user_id"`
+	TodoListID  int    `json:"todolist_id"`
 	Creator     string `json:"creator"`
 	Column      string `json:"column"`
 	LastUpdated string `json:"lastUpdated"`
 }
 
 type User struct {
-	ID int `json:"id"`
-	Username string `json:"username"`
+	ID                 int    `json:"id"`
+	Username           string `json:"username"`
+	LastUsedTodolistID int    `json:"lastUsedTodolistId"`
 }
 
 var db *sql.DB
@@ -35,39 +44,30 @@ func initDB() {
 		log.Fatal(err)
 	}
 
-	todos := `CREATE TABLE IF NOT EXISTS todos (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-		title TEXT,
-		column TEXT,
-		last_updated TEXT
-	)`
-	_, err = db.Exec(todos)
+	// create tables
+	_, err = db.Exec(TodosSchema)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	todolists := `CREATE TABLE IF NOT EXISTS todolists (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		user_id INTEGER,
-		slug TEXT UNIQUE
-	)`
-	_, err = db.Exec(todolists)
+	_, err = db.Exec(TodoListsSchema)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	users := `CREATE TABLE IF NOT EXISTS users (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE
-	)`
-	_, err = db.Exec(users)
+	_, err = db.Exec(UsersSchema)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func getTodos(w http.ResponseWriter, r *http.Request) {
+func getTodolist(w http.ResponseWriter, r *http.Request) {
+	todolistID := r.URL.Path[len("/todolists/"):]
+	if todolistID == "" {
+		http.Error(w, "Missing todolist ID", http.StatusBadRequest)
+		return
+	}
+
 	rows, err := db.Query(`
 		SELECT
 			todos.id,
@@ -78,7 +78,8 @@ func getTodos(w http.ResponseWriter, r *http.Request) {
 			todos.last_updated
 		FROM todos
 		LEFT JOIN users ON todos.user_id = users.id
-	`)
+		WHERE todos.todolist_id = ?
+	`, todolistID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -99,29 +100,103 @@ func getTodos(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(todos)
 }
 
-func addTodo(w http.ResponseWriter, r *http.Request) {
-	var todo Todo
-	if err := json.NewDecoder(r.Body).Decode(&todo); err != nil {
+func createTodolist(w http.ResponseWriter, r *http.Request) {
+	var todolist TodoList
+	if err := json.NewDecoder(r.Body).Decode(&todolist); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err := db.QueryRow("SELECT username FROM users WHERE id = ?", todo.UserID).Scan(&todo.Creator)
-	if err != nil {
-
-		http.Error(w, "Failed to fetch username: "+err.Error(), http.StatusInternalServerError)
+	var userExists bool
+	err := db.QueryRow("SELECT EXISTS (SELECT 1 FROM users WHERE id = ?)", todolist.UserID).Scan(&userExists)
+	if err != nil || !userExists {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
 
-	// Prepare and execute the INSERT statement
-	stmt, err := db.Prepare("INSERT INTO todos (title, user_id, column, last_updated) VALUES (?, ?, ?, ?)")
+	todolist.Slug = generateTodolistSlug()
+
+	stmt, err := db.Prepare("INSERT INTO todolists (user_id, slug) VALUES (?, ?)")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer stmt.Close()
 
-	result, err := stmt.Exec(todo.Title, todo.UserID, todo.Column, todo.LastUpdated)
+	result, err := stmt.Exec(todolist.UserID, todolist.Slug)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	id, _ := result.LastInsertId()
+	todolist.ID = int(id)
+
+	// update the user to set this as the last used list
+	_, err = db.Exec("UPDATE users SET last_used_todolist_id = ? WHERE id = ?", todolist.ID, todolist.UserID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(todolist)
+}
+
+func getUser(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Path[len("/users/"):]
+	if id == "" {
+		http.Error(w, "Missing user ID", http.StatusBadRequest)
+		return
+	}
+
+	var user User
+	err := db.QueryRow(`
+        SELECT id, username, last_used_todolist_id
+        FROM users
+        WHERE id = ?`, id).Scan(&user.ID, &user.Username, &user.LastUsedTodolistID)
+
+	if err == sql.ErrNoRows {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
+}
+
+func createTodo(w http.ResponseWriter, r *http.Request) {
+	var todo Todo
+	if err := json.NewDecoder(r.Body).Decode(&todo); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var todolistExists bool
+	err := db.QueryRow("SELECT EXISTS (SELECT 1 FROM todolists WHERE id = ?)", todo.TodoListID).Scan(&todolistExists)
+	if err != nil || !todolistExists {
+		http.Error(w, "Failed to validated todolist: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = db.QueryRow("SELECT username FROM users WHERE id = ?", todo.UserID).Scan(&todo.Creator)
+	if err != nil {
+		http.Error(w, "Failed to fetch username: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	stmt, err := db.Prepare("INSERT INTO todos (title, user_id, todolist_id, column, last_updated) VALUES (?, ?, ?, ?, ?)")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer stmt.Close()
+
+	result, err := stmt.Exec(todo.Title, todo.UserID, todo.TodoListID, todo.Column, todo.LastUpdated)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -130,8 +205,6 @@ func addTodo(w http.ResponseWriter, r *http.Request) {
 	id, _ := result.LastInsertId()
 	todo.ID = int(id)
 
-
-	// Return the newly created todo with the username included
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(todo)
 }
@@ -159,7 +232,7 @@ func updateTodoColumn(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func createUser(w http.ResponseWriter, r *http.Request) {
+func createUser(w http.ResponseWriter, _ *http.Request) {
 	username := generateUsername()
 
 	stmt, err := db.Prepare("INSERT INTO users (username) VALUES (?)")
@@ -204,16 +277,17 @@ func deleteTodo(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-
 // creates "nice" looking strings, similar to Figma's usernames or GitHub's repo names
 func generateUsername() string {
 	var adjectives = []string{"bright", "calm", "cool", "dark", "fast", "happy", "kind", "lucky", "quick", "shiny"}
 	var nouns = []string{"cat", "dog", "fox", "lion", "panda", "tiger", "wolf", "zebra", "whale", "koala"}
 
-	rand.Seed(time.Now().UnixNano())
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for {
-		// add a random number to the tail to avoid collisions...
-		username := fmt.Sprintf("%s-%s-%d", adjectives[rand.Intn(len(adjectives))], nouns[rand.Intn(len(nouns))], rand.Intn(100))
+		username := fmt.Sprintf("%s-%s-%d",
+			adjectives[r.Intn(len(adjectives))],
+			nouns[r.Intn(len(nouns))],
+			r.Intn(100))
 
 		// ...but still check for them!
 		var exists bool
@@ -229,15 +303,51 @@ func generateUsername() string {
 	}
 }
 
+// generates sharing slugs inspired by Google Meet codes
+func generateTodolistSlug() string {
+	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+	var segmentLengths = [3]int{3, 4, 3}
+
+	for {
+		var code string
+		for i, length := range segmentLengths {
+			for j := 0; j < length; j++ {
+				num := rand.Intn(len(charset))
+				code += string(charset[num])
+			}
+			if i < len(segmentLengths)-1 {
+				code += "-"
+			}
+		}
+
+		var exists bool
+		err := db.QueryRow("SELECT EXISTS (SELECT 1 FROM todolists WHERE slug = ?)", code).Scan(&exists)
+		if err != nil {
+			log.Printf("Error checking slug existence: %v", err)
+			continue
+		}
+
+		if !exists {
+			return code
+		}
+	}
+}
+
 func main() {
 	initDB()
 	defer db.Close()
 
+	http.HandleFunc("/todolists/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			createTodolist(w, r)
+		} else if r.Method == http.MethodGet {
+			getTodolist(w, r)
+		}
+	})
+
 	http.HandleFunc("/todos/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
-			getTodos(w, r)
-		} else if r.Method == http.MethodPost {
-			addTodo(w, r)
+		if r.Method == http.MethodPost {
+			createTodo(w, r)
 		} else if r.Method == http.MethodDelete {
 			deleteTodo(w, r)
 		}
@@ -249,9 +359,11 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/users/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			createUser(w, r)
+		} else if r.Method == http.MethodGet {
+			getUser(w, r)
 		}
 	})
 

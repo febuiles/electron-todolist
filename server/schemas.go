@@ -1,0 +1,22 @@
+package main
+
+var TodoListsSchema = `CREATE TABLE IF NOT EXISTS todolists (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	user_id INTEGER NOT NULL,
+	slug TEXT UNIQUE NOT NULL
+)`
+
+var TodosSchema = `CREATE TABLE IF NOT EXISTS todos (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	user_id INTEGER NOT NULL,
+	title TEXT NOT NULL,
+	column TEXT NOT NULL,
+	last_updated TEXT NOT NULL,
+	todolist_id INTEGER NOT NULL
+)`
+
+var UsersSchema = `CREATE TABLE IF NOT EXISTS users (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	username TEXT UNIQUE NOT NULL,
+	last_used_todolist_id INTEGER DEFAULT 0
+)`
