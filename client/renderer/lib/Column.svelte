@@ -54,9 +54,20 @@
         placeholder="Enter new TODO..."
         bind:value={newTodoTitle}
         class="add-card-input"
-        on:keydown={(e) => { if (e.key === 'Enter') addNewTodo(column.id, newTodoTitle); }}
+        on:keydown={(e) => {
+          if (e.key === 'Enter') {
+            addNewTodo(column.id, newTodoTitle);
+            newTodoTitle = "";
+          }
+        }}
       />
-      <button on:click={() => addNewTodo(column.id, newTodoTitle)} class="add-card-button">
+      <button
+        on:click={() => {
+          addNewTodo(column.id, newTodoTitle);
+          newTodoTitle = "";
+        }}
+        class="add-card-button"
+        >
         + Add Item
       </button>
     </div>
