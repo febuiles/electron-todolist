@@ -1,9 +1,8 @@
 <script lang="ts">
   import Card from './Card.svelte';
+  import { todoStore } from '../stores/todostore.js';
 
   export let column;
-  export let todos;
-  export let todoStore;
   export let draggedTodo;
   export let draggedOverColumn;
   export let handleDragOver;
@@ -11,11 +10,11 @@
   export let handleDrop;
   export let handleDragEnd;
   export let handleDragStart;
-  export let newTodoTitle;
-  export let addNewTodo;
+  export let newTodoTitle: string;
+  export let createTodo;
 
-  function isValidTransition(fromState, toState) {
-    const StateTransitions = {
+  function isValidTransition(fromState: string, toState: string) {
+    const StateTransitions: Record<string, string[]> = {
       'todo': ['ongoing'],
       'ongoing': ['done', 'todo'],
       'done': ['ongoing']
@@ -35,14 +34,14 @@
   <div class="column-header">
     <h2>{column.title}</h2>
     <span class="task-count">
-      {todos.filter(todo => todo.column === column.id).length}
+      {$todoStore.filter(todo => todo.column === column.id)?.length || 0}
     </span>
   </div>
 
   <div class="cards">
-    {#if todos.filter(todo => todo.column === column.id).length > 0}
-      {#each todos.filter(todo => todo.column === column.id) as todo}
-        <Card {todo} {todoStore} {handleDragStart}/>
+    {#if $todoStore.filter(todo => todo.column === column.id).length > 0}
+      {#each $todoStore.filter(todo => todo.column === column.id) as todo}
+        <Card {todo} {handleDragStart}/>
       {/each}
     {/if}
   </div>
@@ -56,14 +55,14 @@
         class="add-card-input"
         on:keydown={(e) => {
           if (e.key === 'Enter') {
-            addNewTodo(column.id, newTodoTitle);
+            createTodo(column.id, newTodoTitle);
             newTodoTitle = "";
           }
         }}
       />
       <button
         on:click={() => {
-          addNewTodo(column.id, newTodoTitle);
+          createTodo(column.id, newTodoTitle);
           newTodoTitle = "";
         }}
         class="add-card-button"

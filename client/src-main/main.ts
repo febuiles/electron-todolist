@@ -2,7 +2,7 @@ import { app, BrowserWindow, protocol, net, ipcMain } from 'electron';
 import path from 'path';
 import url from 'url';
 
-import { createUser, initializeUser } from './users'
+import { initializeUser } from './users'
 
 const scheme = 'app';
 const srcFolder = path.join(app.getAppPath(), `.vite/main_window/`);
@@ -22,9 +22,10 @@ protocol.registerSchemesAsPrivileged([
 
 app.on('ready', async () => {
   try {
+    let user = await initializeUser();
 
-    const user = await initializeUser();
-    ipcMain.handle('get-user', () => { // we'll need this in the renderer
+    ipcMain.handle('get-user', () => {
+      console.log(user)
       return user;
     });
 

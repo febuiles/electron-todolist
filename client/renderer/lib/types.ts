@@ -1,4 +1,4 @@
-interface Todo {
+export interface Todo {
   id: number;
   title: string;
   user_id: number;
@@ -7,9 +7,15 @@ interface Todo {
   creator: string;
 }
 
-type ColumnType = 'todo' | 'ongoing' | 'done';
+export type ColumnType = 'todo' | 'ongoing' | 'done';
 
-interface Column {
+export interface Columnable {
   id: ColumnType;
   title: string;
+}
+
+export interface User {
+  id: number;
+  username: string;
+  lastUsedTodolistId: number;
 }

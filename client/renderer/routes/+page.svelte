@@ -1,9 +1,13 @@
 <script lang="ts">
+  import { get } from 'svelte/store';
   import { onMount } from 'svelte';
   import Column from '../lib/Column.svelte';
-  import { writable } from 'svelte/store';
+  import { todoStore } from '../stores/todostore.js';
+  import { userStore } from '../stores/user.js';
+  import type { ColumnType, Todo, Columnable, User } from '../lib/types';
+  import { getTodolist, createTodolist } from '../lib/todolists';
 
-  let user;
+  let user: User | null = null;
 
   onMount(async () => {
     try {
@@ -11,6 +15,8 @@
     } catch (err) {
       console.error('Failed to fetch user:', err);
     }
+    userStore.set(user)
+    getTodolist(user.lastUsedTodolistId)
   });
 
   // this state machines represents the possible transitions for a TODO
@@ -20,17 +26,15 @@
     'done': ['ongoing']
   };
 
-  const columns: Column[] = [
+  const columns: Columnable[] = [
     { id: 'todo', title: 'TODO' },
     { id: 'ongoing', title: 'ONGOING' },
     { id: 'done', title: 'DONE' }
   ];
 
-  const todoStore = writable([]);
-
   let draggedTodo: Todo | null = null;
   let draggedOverColumn: ColumnType | null = null;
-  let newTodoTitle = ""
+  let newTodoTitle: string = ""
 
   function handleDragStart(todo: Todo): void {
     draggedTodo = todo;
@@ -82,20 +86,20 @@
     draggedOverColumn = null;
   }
 
-  async function fetchTodos() {
-    const response = await fetch('http://localhost:8080/todos');
-    const todos = await response.json();
-    todoStore.set(todos);
-  }
+  export async function createTodo(targetColumn: ColumnType, newTodoTitle: string): Promise<void> {
+    const user = get(userStore);
 
+    if (!user || !user.id) {
+      throw new Error('Failed to add new todo: Invalid user')
+    }
 
-  async function addNewTodo(targetColumn: ColumnType, newTodoTitle: string): Promise<void> {
     if (newTodoTitle.trim()) {
       const newTodo = {
         title: newTodoTitle.trim(),
         user_id: user.id,
         column: targetColumn,
         lastUpdated: new Date().toLocaleString(),
+        todolist_id: user.lastUsedTodolistId
       };
 
       const response = await fetch('http://localhost:8080/todos/', {
@@ -108,6 +112,7 @@
       todoStore.update((todos) => [...todos, createdTodo]);
     }
   }
+
 
   async function updateTodoColumn(todoId: number, targetColumn: ColumnType): Promise<void> {
     const lastUpdated = new Date().toLocaleString();
@@ -124,16 +129,12 @@
       )
     );
   }
-
-  fetchTodos();
 </script>
 
 <div class="board">
   {#each columns as column}
     <Column
       {column}
-      todoStore={todoStore}
-      todos={$todoStore}
       {draggedTodo}
       {draggedOverColumn}
       handleDragOver={handleDragOver}
@@ -142,7 +143,7 @@
       handleDragEnd={handleDragEnd}
       handleDragStart={handleDragStart}
       bind:newTodoTitle
-      addNewTodo={addNewTodo}
+      createTodo={createTodo}
     />
   {/each}
 </div>

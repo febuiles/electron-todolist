@@ -35,7 +35,6 @@ const config = {
 	    // SPA (Single-page application)
 	    // https://kit.svelte.dev/docs/single-page-apps
 	    fallback: '200.html',
-
 	    pages: '.vite/main_window',
 	    assets: '.vite/main_window',
 	})

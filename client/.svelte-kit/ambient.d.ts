@@ -86,7 +86,6 @@ declare module '$env/static/private' {
 	export const LC_TERMINAL: string;
 	export const SQLITE_EXEMPT_PATH_FROM_VNODE_GUARDS: string;
 	export const SECURITYSESSIONID: string;
-	export const GONOSUMDB: string;
 	export const npm_node_execpath: string;
 	export const npm_config_prefix: string;
 	export const COLORTERM: string;
@@ -183,7 +182,6 @@ declare module '$env/dynamic/private' {
 		LC_TERMINAL: string;
 		SQLITE_EXEMPT_PATH_FROM_VNODE_GUARDS: string;
 		SECURITYSESSIONID: string;
-		GONOSUMDB: string;
 		npm_node_execpath: string;
 		npm_config_prefix: string;
 		COLORTERM: string;

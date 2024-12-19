@@ -1,6 +1,8 @@
 <script lang="ts">
-  export let todo;
-  export let todoStore;
+  import type { Todo } from '../lib/types';
+  import { todoStore } from '../stores/todostore.js';
+  
+  export let todo: Todo;
   export let handleDragStart;
 
   async function deleteTodo() {
@@ -9,7 +11,7 @@
     }
   }
 
-  async function handleDelete(todoID) {
+  async function handleDelete(todoID: number) {
     try {
       const response = await fetch(`http://localhost:8080/todos/${todoID}`, {
         method: 'DELETE'
@@ -19,7 +21,7 @@
         throw new Error('Failed to delete the TODO');
       }
       todoStore.update(todos => todos.filter(todo => todo.id !== todoID));
-    } catch (error) {
+    } catch (error: any) {
       alert(`Error: ${error.message}`);
     }
   }
