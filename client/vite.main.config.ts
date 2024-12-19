@@ -6,7 +6,7 @@ export default defineConfig({
 	outDir: '.vite/main',
 	minify: 'esbuild',
 	lib: {
-	    entry: './src-main/main.ts',
+	    entry: './src/main.ts',
 	    fileName: () => '[name].js',
 	    formats: ['es'],
 	},

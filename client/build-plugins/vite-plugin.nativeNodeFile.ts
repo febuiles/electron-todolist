@@ -5,7 +5,7 @@ import { cp, constants } from 'node:fs/promises';
 export type Config = {
 	/**
 	 * Import path the code uses to import this native node addon dependency.
-	 * 
+	 *
 	 * Imports of this path will be replaced with a require to the bundled `.node` file.
 	 * This allows using a TypeScript declaration file as the import for a native node addon dependency.
 	 */
@@ -18,7 +18,7 @@ export type Config = {
 
 	/**
 	 * Path for the .node file. Ex: `thisThing.node`.
-	 * 
+	 *
 	 * If not defined the `.node` file is placed at the root with the same name as the built `.node` file.
 	 */
 	includePath?: string,
@@ -69,7 +69,7 @@ export function nativeNodeFile(config: Config, root: string = process.cwd()): Pl
 		},
 		async resolveId(source, importer, options) {
 			// console.log('---vite.resolveId---', source, importer, options);
-			// sample output - source: `../src-native/native`, importer: `C:/ProjectPath/src-main/main.ts`, options: `{ attributes: {}, custom: {}, isEntry: false }`
+			// sample output - source: `../src-native/native`, importer: `C:/ProjectPath/src/main.ts`, options: `{ attributes: {}, custom: {}, isEntry: false }`
 
 			if(importer === undefined) return null;
 
