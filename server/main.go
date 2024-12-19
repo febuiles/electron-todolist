@@ -181,6 +181,30 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+func deleteTodo(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Path[len("/todos/"):]
+	if id == "" {
+		http.Error(w, "Missing TODO ID", http.StatusBadRequest)
+		return
+	}
+
+	stmt, err := db.Prepare("DELETE FROM todos WHERE id = ?")
+	if err != nil {
+		http.Error(w, "Failed to prepare delete statement: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(id)
+	if err != nil {
+		http.Error(w, "Failed to delete TODO: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+
 // creates "nice" looking strings, similar to Figma's usernames or GitHub's repo names
 func generateUsername() string {
 	var adjectives = []string{"bright", "calm", "cool", "dark", "fast", "happy", "kind", "lucky", "quick", "shiny"}
@@ -209,11 +233,13 @@ func main() {
 	initDB()
 	defer db.Close()
 
-	http.HandleFunc("/todos", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/todos/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			getTodos(w, r)
 		} else if r.Method == http.MethodPost {
 			addTodo(w, r)
+		} else if r.Method == http.MethodDelete {
+			deleteTodo(w, r)
 		}
 	})
 
@@ -231,7 +257,7 @@ func main() {
 
 	handler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
-		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS", "DELETE"},
 		AllowedHeaders:   []string{"Content-Type"},
 		AllowCredentials: true,
 	}).Handler(http.DefaultServeMux)

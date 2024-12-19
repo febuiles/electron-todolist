@@ -1,6 +1,29 @@
 <script lang="ts">
   export let todo;
+  export let todoStore;
   export let handleDragStart;
+
+  async function deleteTodo() {
+    if (confirm(`Are you sure you want to delete "${todo.title}"?`)) {
+      await handleDelete(todo.id);
+    }
+  }
+
+  async function handleDelete(todoID) {
+    try {
+      const response = await fetch(`http://localhost:8080/todos/${todoID}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete the TODO');
+      }
+      todoStore.update(todos => todos.filter(todo => todo.id !== todoID));
+    } catch (error) {
+      alert(`Error: ${error.message}`);
+    }
+  }
+
 </script>
 
 <div
@@ -8,7 +31,12 @@
   draggable="true"
   on:dragstart={() => handleDragStart(todo)}
 >
-  <h3>{todo.title}</h3>
+  <div class="card-header">
+    <h3>{todo.title}</h3>
+    <button class="delete-icon" on:click={deleteTodo} title="Delete TODO">
+      ❌
+    </button>
+  </div>
   <div class="card-meta">
     <span>Created by: {todo.creator}</span>
     <span>Last updated: {todo.lastUpdated}</span>

@@ -3,6 +3,7 @@
 
   export let column;
   export let todos;
+  export let todoStore;
   export let draggedTodo;
   export let draggedOverColumn;
   export let handleDragOver;
@@ -41,7 +42,7 @@
   <div class="cards">
     {#if todos.filter(todo => todo.column === column.id).length > 0}
       {#each todos.filter(todo => todo.column === column.id) as todo}
-        <Card {todo} {handleDragStart} />
+        <Card {todo} {todoStore} {handleDragStart}/>
       {/each}
     {/if}
   </div>

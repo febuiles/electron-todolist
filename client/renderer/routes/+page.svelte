@@ -98,7 +98,7 @@
         lastUpdated: new Date().toLocaleString(),
       };
 
-      const response = await fetch('http://localhost:8080/todos', {
+      const response = await fetch('http://localhost:8080/todos/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTodo),
@@ -125,13 +125,14 @@
     );
   }
 
-  fetchTodos(); // Fetch the initial list of todos
+  fetchTodos();
 </script>
 
 <div class="board">
   {#each columns as column}
     <Column
       {column}
+      todoStore={todoStore}
       todos={$todoStore}
       {draggedTodo}
       {draggedOverColumn}
