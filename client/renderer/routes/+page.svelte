@@ -2,8 +2,8 @@
   import { get } from 'svelte/store';
   import { onMount } from 'svelte';
   import Column from '../lib/Column.svelte';
-  import { todoStore } from '../stores/todostore.js';
-  import { userStore } from '../stores/user.js';
+  import { todoStore } from '../stores/todostore';
+  import { userStore } from '../stores/userstore';
   import type { ColumnType, Todo, Columnable, User } from '../lib/types';
   import { getTodolist, createTodolist } from '../lib/todolists';
 
@@ -15,6 +15,7 @@
     } catch (err) {
       console.error('Failed to fetch user:', err);
     }
+    if (!user) return;
     userStore.set(user)
     getTodolist(user.lastUsedTodolistId)
   });

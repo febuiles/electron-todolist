@@ -1,5 +1,5 @@
-import { userStore } from "../stores/user";
-import { todoStore } from "../stores/todostore.js";
+import { userStore } from "../stores/userstore";
+import { todoStore } from "../stores/todostore";
 import { get } from "svelte/store";
 
 export async function getTodolist(todolistId: number): Promise<void> {
