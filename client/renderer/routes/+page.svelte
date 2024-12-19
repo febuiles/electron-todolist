@@ -36,6 +36,22 @@
   let draggedOverColumn: ColumnType | null = null;
   let newTodoTitle: string = ""
 
+  async function handleNewList() {
+    // TODO implement
+    const newList = await createTodolist(user.id);
+    getTodolist(newList.id);
+  }
+
+  async function handleShareList() {
+    // TODO: Implement share functionality
+    console.log('Share list clicked');
+  }
+
+  async function handleJoinList() {
+    // TODO: Implement join functionality
+    console.log('Join list clicked');
+  }
+
   function handleDragStart(todo: Todo): void {
     draggedTodo = todo;
   }
@@ -131,6 +147,28 @@
   }
 </script>
 
+<header class="app-header">
+  <h1>pooltasks</h1>
+  <div class="header-buttons">
+    <button class="secondary-button" on:click={handleShareList}>
+      <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
+        <path d="M16 5l-4-4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 21V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Share
+    </button>
+    <button class="secondary-button" on:click={handleJoinList}>
+      <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 5v2h18v-2c0-2.5-4-5-9-5Z" fill="currentColor"/></svg>
+      Join
+    </button>
+    <button class="primary-button" on:click={handleNewList}>
+      <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path d="M12 5v14m7-7H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      New List
+    </button>
+  </div>
+</header>
+
 <div class="board">
   {#each columns as column}
     <Column
@@ -144,6 +182,6 @@
       handleDragStart={handleDragStart}
       bind:newTodoTitle
       createTodo={createTodo}
-    />
-  {/each}
-</div>
+      />
+    {/each}
+  </div>

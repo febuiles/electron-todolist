@@ -65,7 +65,7 @@
           createTodo(column.id, newTodoTitle);
           newTodoTitle = "";
         }}
-        class="add-card-button"
+        class="primary-button add-card-button"
         >
         + Add Item
       </button>

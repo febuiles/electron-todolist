@@ -1,10 +1,14 @@
+body {
+  font-family: system-ui, Helvetica, Arial, sans-serif;
+}
+
 .board {
+  min-height: 100vh;
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  min-height: 100vh;
+  flex: 1;
   background: #f1f2f4;
-  font-family: system-ui, Helvetica, Arial, sans-serif;
 }
 
 .column {
@@ -109,8 +113,6 @@
 }
 
 .add-card-button {
-  background-color: #4CAF50;
-  color: white;
   border: none;
   border-radius: 4px;
   padding: 8px 12px;
@@ -124,12 +126,73 @@
 }
 
 .delete-icon {
-  background: transparent;
   border: none;
-  font-size: 1rem;
+  background: transparent;
+  font-size: 1.5rem;
   color: #999;
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
   transition: background 0.2s ease, color 0.2s ease;
+}
+
+.delete-icon:hover {
+  color: #000;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #172b4d;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.header-buttons button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.button-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.primary-button {
+  background-color: #333333;
+  color: #ffffff;
+}
+
+.primary-button:hover {
+  background-color: #444444;
+}
+
+.secondary-button {
+  background-color: #555555;
+  color: #fff;
+}
+
+.secondary-button:hover {
+  background-color: #666666;
+  color: #ffffff;
 }

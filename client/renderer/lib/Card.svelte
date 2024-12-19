@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Todo } from '../lib/types';
   import { todoStore } from '../stores/todostore.js';
-  
+
   export let todo: Todo;
   export let handleDragStart;
 
@@ -36,7 +36,7 @@
   <div class="card-header">
     <h3>{todo.title}</h3>
     <button class="delete-icon" on:click={deleteTodo} title="Delete TODO">
-      ❌
+      &times;
     </button>
   </div>
   <div class="card-meta">
