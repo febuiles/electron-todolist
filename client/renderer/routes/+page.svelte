@@ -1,6 +1,17 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import Column from '../lib/Column.svelte';
   import { writable } from 'svelte/store';
+
+  let user;
+
+  onMount(async () => {
+    try {
+      user = await window.userAPI.getUser();
+    } catch (err) {
+      console.error('Failed to fetch user:', err);
+    }
+  });
 
   // this state machines represents the possible transitions for a TODO
   const StateTransitions: Record<ColumnType, ColumnType[]> = {
@@ -82,7 +93,7 @@
     if (newTodoTitle.trim()) {
       const newTodo = {
         title: newTodoTitle.trim(),
-        creator: 'Anonymous',
+        user_id: user.id,
         column: targetColumn,
         lastUpdated: new Date().toLocaleString(),
       };

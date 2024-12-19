@@ -1,9 +1,10 @@
 interface Todo {
   id: number;
   title: string;
-  creator: string;
+  user_id: number;
   lastUpdated: string;
   column: ColumnType;
+  creator: string;
 }
 
 type ColumnType = 'todo' | 'ongoing' | 'done';
