@@ -64,7 +64,7 @@ function createWindow() {
 
   if (import.meta.env.DEV) {
     mainWindow.loadURL(VITE_DEV_SERVER_URLS['main_window']);
-    mainWindow.webContents.openDevTools();
+//    mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadURL('app://-/');
   }

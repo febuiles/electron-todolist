@@ -25,15 +25,16 @@ curl http://localhost:8000/_ping
 # => PONG
 ```
 
-TODO: document .env
-
 ### Client 
 
 
 You can run the Electron app by running `npm i && npm start` inside the
 `client/` folder.
 
-TODO: document appData file
+The local state for the application is stored in the appData
+folder. You can clean it by runnning `npm prune`, or by removing the
+file manually (for macOS it lives in `~/Library/"Application
+Support"/todolists-client/user.json`.
 
 
 ## Schema
@@ -74,6 +75,7 @@ This implementation is not complete. It lacks:
   lacked time.
 * macOS/Windows package. Electron Forge creates them with `npm run
   make`, but there's some weirdness re. Vite not building `preload.js`.
+* I have not included any unit tests.
 
 ## Considerations
 
