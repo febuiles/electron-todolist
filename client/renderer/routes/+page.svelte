@@ -2,6 +2,8 @@
   import { get } from 'svelte/store';
   import { onMount } from 'svelte';
   import Column from '../lib/Column.svelte';
+
+  import { AppHost } from "../../src/config"
   import { todoStore } from '../stores/todostore';
   import { userStore } from '../stores/userstore';
   import type { ColumnType, Todo, Columnable, User } from '../lib/types';
@@ -129,7 +131,7 @@
         todolist_id: user.lastUsedTodolistId
       };
 
-      const response = await fetch('http://localhost:8080/todos/', {
+      const response = await fetch(`${AppHost}/todos/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTodo),
@@ -144,7 +146,7 @@
   async function updateTodoColumn(todoId: number, targetColumn: ColumnType): Promise<void> {
     const lastUpdated = new Date().toLocaleString();
 
-    await fetch('http://localhost:8080/todos/update', {
+    await fetch(`${AppHost}/todos/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: todoId, column: targetColumn, lastUpdated }),

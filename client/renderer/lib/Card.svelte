@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { AppHost } from "../../src/config"
   import type { Todo } from '../lib/types';
   import { todoStore } from '../stores/todostore.js';
 
@@ -13,7 +14,7 @@
 
   async function handleDelete(todoID: number) {
     try {
-      const response = await fetch(`http://localhost:8080/todos/${todoID}`, {
+      const response = await fetch(`${AppHost}/todos/${todoID}`, {
         method: 'DELETE'
       });
 

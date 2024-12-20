@@ -1,9 +1,12 @@
+import { AppHost } from "../../src/config"
 import { userStore } from "../stores/userstore";
 import { todoStore } from "../stores/todostore";
+
+
 import { get } from "svelte/store";
 
 export async function getTodolist(todolistId: number): Promise<void> {
-  const response = await fetch(`http://localhost:8080/todolists/${todolistId}`);
+  const response = await fetch(`${AppHost}/todolists/${todolistId}`);
   const todos = await response.json();
   todoStore.set(todos);
 }
@@ -15,7 +18,7 @@ export async function createTodolist(): Promise<any> {
     throw new Error('Failed to create todolist: Invalid user');
   }
 
-  const response = await fetch(`http://localhost:8080/todolists/`, {
+  const response = await fetch(`${AppHost}/todolists/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user_id: user.id }),

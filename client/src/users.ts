@@ -1,15 +1,14 @@
 import { app, net } from 'electron';
 import path from 'path';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { AppHost } from "./config"
 
 const userDataPath = app.getPath('userData');
 export const userFilePath = path.join(userDataPath, 'user.json');
 
-const app_host = "http://localhost:8080"
-
 export async function createUser() {
   try {
-    const response = await fetch(`${app_host}/users/`, {
+    const response = await fetch(`${AppHost}/users/`, {
       method: 'POST'
     });
 
@@ -33,7 +32,7 @@ export async function initializeUser() {
     try {
       const user = await createUser();
       // after creating a user, we need to create an initial todolist
-      const tlRes = await fetch(`http://localhost:8080/todolists/`, {
+      const tlRes = await fetch(`${AppHost}/todolists/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: user.id }),
