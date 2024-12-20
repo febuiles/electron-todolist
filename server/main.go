@@ -337,6 +337,10 @@ func main() {
 	initDB()
 	defer db.Close()
 
+	http.HandleFunc("/_ping", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "PONG")
+	})
+
 	http.HandleFunc("/todolists/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			createTodolist(w, r)
@@ -374,6 +378,6 @@ func main() {
 		AllowCredentials: true,
 	}).Handler(http.DefaultServeMux)
 
-	log.Println("Server is running on port 8080")
+	log.Println("Server is running.")
 	log.Fatal(http.ListenAndServe(":8080", handler))
 }

@@ -39,6 +39,13 @@
   let draggedOverColumn: ColumnType | null = null;
   let newTodoTitle: string = ""
 
+  let showJoinModal = false;
+  let joinSharedKey = '';
+  let hostInput = '';
+
+  let showShareModal = false;
+  const shareKey = "aws-msft-gcp";  // This would typically come from your backend
+
   async function handleNewList() {
     if (!$userStore) return;
 
@@ -56,13 +63,23 @@
   }
 
   async function handleShareList() {
-    // TODO: Implement share functionality
-    console.log('Share list clicked');
+    showShareModal = true;
   }
 
   async function handleJoinList() {
-    // TODO: Implement join functionality
-    console.log('Join list clicked');
+    showJoinModal = true;
+  }
+
+  function closeJoinModal() {
+    showJoinModal = false;
+    joinSharedKey = '';
+    hostInput = '';
+  }
+
+  async function handleConnect() {
+    // TODO: Implement connection logic
+    console.log('Connecting with:', { joinSharedKey, hostInput });
+    closeJoinModal();
   }
 
   function handleDragStart(todo: Todo): void {
@@ -158,6 +175,18 @@
       )
     );
   }
+
+  function closeShareModal() {
+    showShareModal = false;
+  }
+
+  async function copyToClipboard() {
+    try {
+      await navigator.clipboard.writeText(shareKey);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+  }
 </script>
 
 <header class="app-header">
@@ -198,3 +227,57 @@
     />
   {/each}
 </div>
+
+{#if showJoinModal}
+  <div class="modal-overlay" on:click={closeJoinModal}>
+    <div class="modal" on:click|stopPropagation>
+      <h2>Join Tasklist</h2>
+      <div class="modal-content">
+        <div class="input-group">
+          <label for="shared-key">Shared Key</label>
+          <input
+            id="shared-key"
+            type="text"
+            bind:value={joinSharedKey}
+            placeholder="Enter shared key"
+          />
+        </div>
+        <div class="input-group">
+          <label for="host">Host (optional)</label>
+          <input
+            id="host"
+            type="text"
+            bind:value={hostInput}
+            placeholder="Enter host address"
+          />
+        </div>
+        <button class="primary-button big-button" on:click={handleConnect}>
+          Connect
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+{#if showShareModal}
+  <div class="modal-overlay" on:click={closeShareModal}>
+    <div class="modal" on:click|stopPropagation>
+      <h2>Share Tasklist</h2>
+      <div class="modal-content">
+        <p class="share-instructions">Share this code with your friends to collaborate:</p>
+        <div class="share-key-container">
+          <div class="share-key">{shareKey}</div>
+          <button class="copy-button" on:click={copyToClipboard} title="Copy to clipboard">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+              <path fill="none" d="M0 0h24v24H0z"/>
+              <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+        <button class="primary-button big-button" on:click={closeShareModal}>
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
