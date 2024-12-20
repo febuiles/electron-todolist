@@ -1,17 +1,12 @@
 <script lang="ts">
-  import Card from './Card.svelte';
-  import { todoStore } from '../stores/todostore.js';
+  import Card from './Card.svelte'
+  import { todoStore } from '../stores/todostore.js'
+  import { handleDragStart, handleDragOver, handleDragLeave, handleDrop, handleDragEnd } from '../lib/dragdrop'
+  import { draggedTodo, draggedOverColumn } from '../stores/dragdropstore'
+  import { createTodo } from './todos'
 
-  export let column;
-  export let draggedTodo;
-  export let draggedOverColumn;
-  export let handleDragOver;
-  export let handleDragLeave;
-  export let handleDrop;
-  export let handleDragEnd;
-  export let handleDragStart;
-  export let newTodoTitle: string;
-  export let createTodo;
+  export let newTodoTitle: string
+  export let column
 
   function isValidTransition(fromState: string, toState: string) {
     const StateTransitions: Record<string, string[]> = {
@@ -25,7 +20,7 @@
 
 <div
   class="column"
-  class:invalid-target={draggedTodo && draggedOverColumn === column.id && !isValidTransition(draggedTodo.column, column.id)}
+  class:invalid-target={$draggedTodo && $draggedOverColumn === column.id && !isValidTransition($draggedTodo.column, column.id)}
   on:dragover={(e) => handleDragOver(e, column.id)}
   on:dragleave={handleDragLeave}
   on:drop={() => handleDrop(column.id)}
