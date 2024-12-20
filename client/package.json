@@ -1,6 +1,6 @@
 {
   "name": "todolists-client",
-  "productName": "todolists-client",
+  "productName": "pooltasks",
   "version": "0.0.01",
   "description": "Electron TODO lists",
   "main": ".vite/main/main.js",
