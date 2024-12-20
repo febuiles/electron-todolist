@@ -1,5 +1,9 @@
 # pooltasks
 
+<img width="1512" alt="Screenshot 2024-12-20 at 07 58 43" src="https://github.com/user-attachments/assets/4895b832-f29e-4b66-9085-06a9399878cc" />
+
+A project board to track your TODOs.
+
 ## Installation
 
 ### Server
