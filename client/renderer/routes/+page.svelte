@@ -1,72 +1,77 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import Column from '../lib/Column.svelte';
-  import type { Columnable, User } from '../lib/types';
-  import { createTodolist } from '../lib/todolists';
-  import { getTodos } from '../lib/todos';
-  import { userStore } from '../stores/userstore';
-  import { todolistStore } from '../stores/todoliststore';
+  import { get } from 'svelte/store'
+  import { onMount } from 'svelte'
+  import Column from '../lib/Column.svelte'
+  import type { Columnable, User } from '../lib/types'
+  import { createTodolist, getTodolist } from '../lib/todolists'
+  import { getTodos } from '../lib/todos'
+  import { userStore } from '../stores/userstore'
+  import { todolistStore } from '../stores/todoliststore'
 
   onMount(async () => {
     try {
-      let user = await window.userAPI.getUser();
-      if (!user) return;
+      let user = await window.userAPI.getUser()
+      if (!user) return
 
       userStore.set(user)
-      getTodos(user.lastUsedTodolistId)
+
+      const todolist = await getTodolist(get(userStore).lastUsedTodolistId)
+      todolistStore.set(todolist)
+
+      getTodos(get(userStore).lastUsedTodolistId)
     } catch (err) {
-      console.error('Failed to fetch user:', err);
+      console.error('Failed to fetch user:', err)
     }
-  });
+  })
 
   const columns: Columnable[] = [
     { id: 'todo', title: 'TODO' },
     { id: 'ongoing', title: 'ONGOING' },
     { id: 'done', title: 'DONE' }
-  ];
+  ]
 
   let newTodoTitle: string = ""
   let showJoinModal = false
   let joinSharedKey = ""
   let hostInput = ""
   let showShareModal = false
-  const shareKey = "aws-msft-gcp"  // TODO fetch from the database
+  const shareKey = ""
 
   async function handleNewList() {
-    const newList = await createTodolist();
+    const newList = await createTodolist()
     todolistStore.set(newList)
-    getTodos(newList.id);
+    getTodos(newList.id)
   }
 
   async function handleShareList() {
-    showShareModal = true;
+    showShareModal = true
   }
 
   async function handleJoinList() {
-    showJoinModal = true;
+    showJoinModal = true
   }
 
   function closeJoinModal() {
-    showJoinModal = false;
-    joinSharedKey = '';
-    hostInput = '';
+    showJoinModal = false
+    joinSharedKey = ''
+    hostInput = ''
   }
 
   async function handleConnect() {
     // TODO: Implement connection logic
-    console.log('Connecting with:', { joinSharedKey, hostInput });
-    closeJoinModal();
+    console.log('Connecting with:', { joinSharedKey, hostInput })
+    closeJoinModal()
   }
 
   function closeShareModal() {
-    showShareModal = false;
+    showShareModal = false
   }
 
   async function copyToClipboard() {
     try {
-      await navigator.clipboard.writeText(shareKey);
+      await navigator.clipboard.writeText(shareKey)
     } catch (err) {
-      console.error('Failed to copy text:', err);
+      console.error('Failed to copy text:', err)
     }
   }
 </script>
@@ -140,7 +145,7 @@
       <div class="modal-content">
         <p class="share-instructions">Share this code with your friends to collaborate:</p>
         <div class="share-key-container">
-          <div class="share-key">{shareKey}</div>
+          <div class="share-key">{$todolistStore.slug}</div>
           <button class="copy-button" on:click={copyToClipboard} title="Copy to clipboard">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
               <path fill="none" d="M0 0h24v24H0z"/>
