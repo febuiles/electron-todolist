@@ -44,7 +44,6 @@ func initDB() {
 		log.Fatal(err)
 	}
 
-	// create tables
 	_, err = db.Exec(TodosSchema)
 	if err != nil {
 		log.Fatal(err)
@@ -132,7 +131,7 @@ func createTodolist(w http.ResponseWriter, r *http.Request) {
 	id, _ := result.LastInsertId()
 	todolist.ID = int(id)
 
-	// update the user to set this as the last used list
+	// set it as the user's current list
 	_, err = db.Exec("UPDATE users SET last_used_todolist_id = ? WHERE id = ?", todolist.ID, todolist.UserID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

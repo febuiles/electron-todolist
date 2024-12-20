@@ -1,33 +1,23 @@
 <script lang="ts">
-  import { get } from 'svelte/store';
   import { onMount } from 'svelte';
   import Column from '../lib/Column.svelte';
-
-  import { AppHost } from "../../src/config"
-  import { todoStore } from '../stores/todostore';
+  import type { Columnable, User } from '../lib/types';
+  import { createTodolist } from '../lib/todolists';
+  import { getTodos } from '../lib/todos';
   import { userStore } from '../stores/userstore';
-  import type { ColumnType, Todo, Columnable, User } from '../lib/types';
-  import { getTodolist, createTodolist } from '../lib/todolists';
-
-  let user: User | null = null;
+  import { todolistStore } from '../stores/todoliststore';
 
   onMount(async () => {
     try {
-      user = await window.userAPI.getUser();
+      let user = await window.userAPI.getUser();
+      if (!user) return;
+
+      userStore.set(user)
+      getTodos(user.lastUsedTodolistId)
     } catch (err) {
       console.error('Failed to fetch user:', err);
     }
-    if (!user) return;
-    userStore.set(user)
-    getTodolist(user.lastUsedTodolistId)
   });
-
-  // this state machines represents the possible transitions for a TODO
-  const StateTransitions: Record<ColumnType, ColumnType[]> = {
-    'todo': ['ongoing'],
-    'ongoing': ['done', 'todo'],
-    'done': ['ongoing']
-  };
 
   const columns: Columnable[] = [
     { id: 'todo', title: 'TODO' },
@@ -35,31 +25,17 @@
     { id: 'done', title: 'DONE' }
   ];
 
-  let draggedTodo: Todo | null = null;
-  let draggedOverColumn: ColumnType | null = null;
   let newTodoTitle: string = ""
-
-  let showJoinModal = false;
-  let joinSharedKey = '';
-  let hostInput = '';
-
-  let showShareModal = false;
-  const shareKey = "aws-msft-gcp";  // This would typically come from your backend
+  let showJoinModal = false
+  let joinSharedKey = ""
+  let hostInput = ""
+  let showShareModal = false
+  const shareKey = "aws-msft-gcp"  // TODO fetch from the database
 
   async function handleNewList() {
-    if (!$userStore) return;
-
-    console.log("Current", $userStore.lastUsedTodolistId);
-
     const newList = await createTodolist();
-
-    userStore.update((user) => {
-      if (!user) return null;
-      return { ...user, lastUsedTodolistId: newList.id };
-    });
-    console.log($userStore.lastUsedTodolistId);
-
-    getTodolist($userStore.lastUsedTodolistId);
+    todolistStore.set(newList)
+    getTodos(newList.id);
   }
 
   async function handleShareList() {
@@ -80,100 +56,6 @@
     // TODO: Implement connection logic
     console.log('Connecting with:', { joinSharedKey, hostInput });
     closeJoinModal();
-  }
-
-  function handleDragStart(todo: Todo): void {
-    draggedTodo = todo;
-  }
-
-  function handleDragOver(e: DragEvent, targetColumn: ColumnType): void {
-    e.preventDefault();
-    draggedOverColumn = targetColumn;
-
-    // remove the mouse effect on invalid transitions
-    if (draggedTodo && !isValidTransition(draggedTodo.column, targetColumn)) {
-      e.dataTransfer!.dropEffect = 'none';
-    }
-  }
-
-  function handleDragLeave(): void {
-    draggedOverColumn = null;
-  }
-
-  function isValidTransition(fromState: ColumnType, toState: ColumnType): boolean {
-    if (fromState === toState) {
-      return true;
-    }
-
-    return StateTransitions[fromState]?.includes(toState);
-  }
-
-  function handleDrop(targetColumn: ColumnType): void {
-    if (!draggedTodo) { return; }
-
-    if (isValidTransition(draggedTodo.column, targetColumn)) {
-      updateTodo(draggedTodo.id, targetColumn);
-
-      todoStore.update((todos) =>
-        todos.map((todo) =>
-          todo.id === draggedTodo!.id
-            ? { ...todo, column: targetColumn, lastUpdated: new Date().toLocaleString() }
-          : todo
-        )
-      );
-    }
-
-    draggedTodo = null;
-    draggedOverColumn = null;
-  }
-
-  function handleDragEnd(): void {
-    draggedTodo = null;
-    draggedOverColumn = null;
-  }
-
-  export async function createTodo(targetColumn: ColumnType, newTodoTitle: string): Promise<void> {
-    const user = get(userStore);
-
-    if (!user || !user.id) {
-      throw new Error('Failed to add new todo: Invalid user')
-    }
-
-    if (newTodoTitle.trim()) {
-      const newTodo = {
-        title: newTodoTitle.trim(),
-        user_id: user.id,
-        column: targetColumn,
-        lastUpdated: new Date().toLocaleString(),
-        todolist_id: user.lastUsedTodolistId
-      };
-
-      const response = await fetch(`${AppHost}/todos/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTodo),
-      });
-
-      const createdTodo = await response.json();
-      todoStore.update((todos) => [...todos, createdTodo]);
-    }
-  }
-
-
-  async function updateTodo(todoId: number, targetColumn: ColumnType): Promise<void> {
-    const lastUpdated = new Date().toLocaleString();
-
-    await fetch(`${AppHost}/todos/${todoId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: todoId, column: targetColumn, lastUpdated }),
-    });
-
-    todoStore.update((todos) =>
-      todos.map((todo) =>
-        todo.id === todoId ? { ...todo, column: targetColumn, lastUpdated } : todo
-      )
-    );
   }
 
   function closeShareModal() {
@@ -215,15 +97,7 @@
   {#each columns as column}
     <Column
       {column}
-      {draggedTodo}
-      {draggedOverColumn}
-      handleDragOver={handleDragOver}
-      handleDragLeave={handleDragLeave}
-      handleDrop={handleDrop}
-      handleDragEnd={handleDragEnd}
-      handleDragStart={handleDragStart}
       bind:newTodoTitle
-      createTodo={createTodo}
     />
   {/each}
 </div>

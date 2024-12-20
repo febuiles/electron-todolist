@@ -14,7 +14,7 @@
     "svelte-build": "vite build -c ./vite.renderer.config.ts",
     "svelte-check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "svelte-check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "prune-config": "rm /Users/federico/Library/'Application Support'/todolists-client/user.json",
+    "prune": "rm /Users/federico/Library/'Application Support'/todolists-client/user.json",
     "test": "vitest"
   },
   "devDependencies": {
