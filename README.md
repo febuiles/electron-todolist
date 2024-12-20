@@ -38,16 +38,16 @@ TODO: document appData file
 
 ## Design
 
+
+
 ## Problems
 
 This implementation is not complete. It lacks:
-* Share/Join
-* multi-user support locally
-* package builds
 
-Electron Forge should create macOS and Windows packages with `npm run
-make`, but I have not had success getting Vite to read the `preload.js` file.
-
+* Joining a new session does not work. The groundwork is there but I
+  lacked time.
+* macOS/Windows package. Electron Forge creates them with `npm run
+  make`, but there's some weirdness re. Vite not building `preload.js`.
 
 ## Considerations
 
