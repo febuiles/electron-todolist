@@ -1,6 +1,6 @@
 # pooltasks
 
-<img width="1512" alt="Screenshot 2024-12-20 at 07 58 43" src="https://github.com/user-attachments/assets/4895b832-f29e-4b66-9085-06a9399878cc" />
+<img width="1512" alt="Screenshot 2024-12-20 at 09 07 04" src="https://github.com/user-attachments/assets/723ca0de-3a2e-4a8d-8a3a-5bde1a5872c4" />
 
 A project board to track your TODOs.
 
