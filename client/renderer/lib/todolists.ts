@@ -9,6 +9,9 @@ import { todoStore } from "../stores/todostore"
 export async function createTodolist(): Promise<any> {
   const user = get(userStore)
 
+  if (!user) {
+    throw new Error('Failed to create todolist: Invalid user')
+  }
   const todolist = await createRemote()
   user.lastUsedTodolistId = todolist.id
   userStore.set(user)

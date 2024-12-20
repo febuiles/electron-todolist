@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -60,7 +61,7 @@ func initDB() {
 	}
 }
 
-func getTodolist(w http.ResponseWriter, r *http.Request) {
+func getTodos(w http.ResponseWriter, r *http.Request) {
 	todolistID := r.URL.Path[len("/todolists/"):]
 	if todolistID == "" {
 		http.Error(w, "Missing todolist ID", http.StatusBadRequest)
@@ -332,6 +333,32 @@ func generateTodolistSlug() string {
 	}
 }
 
+func getTodolist(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Path[len("/todolists/"):]
+	if id == "" {
+		http.Error(w, "Missing todolist ID", http.StatusBadRequest)
+		return
+	}
+
+	var todolist TodoList
+	err := db.QueryRow(`
+		SELECT id, user_id, slug
+		FROM todolists
+		WHERE id = ?`, id).Scan(&todolist.ID, &todolist.UserID, &todolist.Slug)
+
+	if err == sql.ErrNoRows {
+		http.Error(w, "Todolist not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(todolist)
+}
+
 func main() {
 	initDB()
 	defer db.Close()
@@ -344,7 +371,13 @@ func main() {
 		if r.Method == http.MethodPost {
 			createTodolist(w, r)
 		} else if r.Method == http.MethodGet {
-			getTodolist(w, r)
+			// todolists/{id}/todos
+			pathParts := strings.Split(r.URL.Path, "/")
+			if len(pathParts) >= 4 && pathParts[3] == "todos" {
+				getTodos(w, r)
+			} else {
+				getTodolist(w, r)
+			}
 		}
 	})
 
