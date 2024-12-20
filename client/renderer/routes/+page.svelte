@@ -112,7 +112,7 @@
     if (!draggedTodo) { return; }
 
     if (isValidTransition(draggedTodo.column, targetColumn)) {
-      updateTodoColumn(draggedTodo.id, targetColumn);
+      updateTodo(draggedTodo.id, targetColumn);
 
       todoStore.update((todos) =>
         todos.map((todo) =>
@@ -160,11 +160,11 @@
   }
 
 
-  async function updateTodoColumn(todoId: number, targetColumn: ColumnType): Promise<void> {
+  async function updateTodo(todoId: number, targetColumn: ColumnType): Promise<void> {
     const lastUpdated = new Date().toLocaleString();
 
-    await fetch(`${AppHost}/todos/update`, {
-      method: 'POST',
+    await fetch(`${AppHost}/todos/${todoId}`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: todoId, column: targetColumn, lastUpdated }),
     });

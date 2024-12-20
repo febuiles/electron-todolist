@@ -209,7 +209,7 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(todo)
 }
 
-func updateTodoColumn(w http.ResponseWriter, r *http.Request) {
+func updateTodo(w http.ResponseWriter, r *http.Request) {
 	var todo Todo
 	if err := json.NewDecoder(r.Body).Decode(&todo); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -354,12 +354,8 @@ func main() {
 			createTodo(w, r)
 		} else if r.Method == http.MethodDelete {
 			deleteTodo(w, r)
-		}
-	})
-
-	http.HandleFunc("/todos/update", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodPost {
-			updateTodoColumn(w, r)
+		} else if r.Method == http.MethodPut {
+			updateTodo(w, r)
 		}
 	})
 
@@ -373,7 +369,7 @@ func main() {
 
 	handler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
-		AllowedMethods:   []string{"GET", "POST", "OPTIONS", "DELETE"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "OPTIONS", "DELETE"},
 		AllowedHeaders:   []string{"Content-Type"},
 		AllowCredentials: true,
 	}).Handler(http.DefaultServeMux)
