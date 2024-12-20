@@ -5,7 +5,7 @@ import type { ColumnType } from './types';
 import { AppHost } from '../../src/config';
 
 export async function getTodos(todolistId: number): Promise<void> {
-  const response = await fetch(`${AppHost}/todolists/${todolistId}`);
+  const response = await fetch(`${AppHost}/todolists/${todolistId}/todos`)
   const todos = await response.json();
   todoStore.set(todos);
 }

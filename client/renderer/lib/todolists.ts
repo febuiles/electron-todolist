@@ -35,3 +35,22 @@ async function createRemote(): Promise<any> {
 
   return response.json()
 }
+
+export async function getTodolist(todolistId: string): Promise<any> {
+  const user = get(userStore)
+
+  if (!user || !user.id) {
+    throw new Error('Failed to get todolist: Invalid user')
+  }
+
+  const response = await fetch(`${AppHost}/todolists/${todolistId}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to get todolist: ${response.statusText}`)
+  }
+
+  return await response.json()
+}

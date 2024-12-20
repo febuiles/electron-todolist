@@ -1,8 +1,9 @@
 <script lang="ts">
+  import { get } from 'svelte/store'
   import { onMount } from 'svelte';
   import Column from '../lib/Column.svelte';
   import type { Columnable, User } from '../lib/types';
-  import { createTodolist } from '../lib/todolists';
+  import { createTodolist, getTodolist } from '../lib/todolists';
   import { getTodos } from '../lib/todos';
   import { userStore } from '../stores/userstore';
   import { todolistStore } from '../stores/todoliststore';
@@ -10,10 +11,16 @@
   onMount(async () => {
     try {
       let user = await window.userAPI.getUser();
+
       if (!user) return;
 
       userStore.set(user)
-      getTodos(user.lastUsedTodolistId)
+
+      const todolist = await getTodolist(get(userStore).lastUsedTodolistId)
+      console.log(todolist)
+      todolistStore.set(todolist)
+
+      getTodos(get(userStore).lastUsedTodolistId)
     } catch (err) {
       console.error('Failed to fetch user:', err);
     }
@@ -30,7 +37,6 @@
   let joinSharedKey = ""
   let hostInput = ""
   let showShareModal = false
-  const shareKey = "aws-msft-gcp"  // TODO fetch from the database
 
   async function handleNewList() {
     const newList = await createTodolist();
@@ -61,6 +67,8 @@
   function closeShareModal() {
     showShareModal = false;
   }
+
+
 
   async function copyToClipboard() {
     try {
@@ -140,7 +148,7 @@
       <div class="modal-content">
         <p class="share-instructions">Share this code with your friends to collaborate:</p>
         <div class="share-key-container">
-          <div class="share-key">{shareKey}</div>
+          <div class="share-key">{$todolistStore.slug}</div>
           <button class="copy-button" on:click={copyToClipboard} title="Copy to clipboard">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
               <path fill="none" d="M0 0h24v24H0z"/>
