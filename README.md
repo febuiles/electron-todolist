@@ -27,13 +27,14 @@ curl http://localhost:8000/_ping
 
 TODO: document .env
 
+
 ### Client 
 
 You can run the Electron app by running `npm i && npm start` inside the
 `client/` folder.
 
-Electron Forge should create macOS and Windows packages with `npm run
-make`, but I have not had success getting Vite to read the `preload.js` file.
+TODO: document appData file
+
 
 ## Design 
 
@@ -43,6 +44,10 @@ This implementation is not complete. It lacks:
 * Share/Join
 * multi-user support locally
 * package builds
+
+Electron Forge should create macOS and Windows packages with `npm run
+make`, but I have not had success getting Vite to read the `preload.js` file.
+
 
 ## Considerations
 
