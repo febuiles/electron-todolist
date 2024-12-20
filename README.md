@@ -1,8 +1,8 @@
-## pooltasks
+# pooltasks
 
-### Installation
+## Installation
 
-#### Server
+### Server
 
 You can run the backend using `docker-compose`:
 
@@ -10,9 +10,13 @@ You can run the backend using `docker-compose`:
 docker-compose up --build
 ```
 
-If you don't have `docker-compose` available, you can manually build
-the Docker image and run it (`docker build -t pooltasks . && docker
-run -p 8000:8080 pooltasks`), or build it with Go (`go mod download && go build .`).
+By default the server will be exposed through port 8000.
+
+If you don't have `docker-compose` available, you can:
+
+1. Build the Docker image in the `server/` folder and run it: `docker build -t pooltasks . && docker
+run -p 8000:8080 pooltasks`
+2. Build it with Go: `go mod download && go build . && ./main`
 
 You can verify it's working by hitting the ping endpoint:
 
@@ -21,13 +25,13 @@ curl http://localhost:8000/_ping
 # => PONG
 ```
 
-#### Client 
+### Client 
 
 You can run the Electron app 
 
-### Design 
+## Design 
 
-### Considerations
+## Considerations
 
 Given the nature of the task I took some shortcuts:
 
