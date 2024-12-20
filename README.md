@@ -36,9 +36,35 @@ You can run the Electron app by running `npm i && npm start` inside the
 TODO: document appData file
 
 
-## Design
+## Schema
 
+```mermaid
+erDiagram
+    users ||--o{ todolists : "creates"
+    users ||--o{ todos : "creates"
+    todolists ||--o{ todos : "contains"
 
+    users {
+        integer id PK
+        text username UK
+        integer last_used_todolist_id
+    }
+
+    todolists {
+        integer id PK
+        integer user_id FK
+        text slug UK
+    }
+
+    todos {
+        integer id PK
+        integer user_id FK
+        text title
+        text column
+        text last_updated
+        integer todolist_id FK
+    }
+```
 
 ## Problems
 
