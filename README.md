@@ -25,7 +25,7 @@ curl http://localhost:8000/_ping
 # => PONG
 ```
 
-### Client 
+### Client
 
 You can run the Electron app by running `npm i && npm start` inside the
 `client/` folder.
@@ -33,7 +33,7 @@ You can run the Electron app by running `npm i && npm start` inside the
 Electron Forge should create macOS and Windows packages with `npm run
 make`, but I have not had success getting Vite to read the `preload.js` file.
 
-## Design 
+## Design
 
 ## Considerations
 
