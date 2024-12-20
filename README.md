@@ -25,6 +25,8 @@ curl http://localhost:8000/_ping
 # => PONG
 ```
 
+TODO: document .env
+
 ### Client 
 
 You can run the Electron app by running `npm i && npm start` inside the
@@ -35,9 +37,17 @@ make`, but I have not had success getting Vite to read the `preload.js` file.
 
 ## Design 
 
+## Problems
+
+This implementation is not complete. It lacks:
+* Share/Join
+* multi-user support locally
+* package builds
+
 ## Considerations
 
-Given the nature of the task I took some shortcuts
+Given the nature of the task I took some shortcuts. With more time I
+would have worked on these (I'd still use SQLite though).
 
 * I decided to use SQLite instead of something like Postgres or MySQL
   to make my life easier. If running inside Docker, the database will
@@ -57,4 +67,5 @@ Given the nature of the task I took some shortcuts
 * The Electron application needs more tests.
 * I iterated very quickly on this, and am pretty certain there's dead
   code inside the project.
+* The code here is not ARIA-compliant.
 
