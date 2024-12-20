@@ -5,16 +5,18 @@
   import { draggedTodo, draggedOverColumn } from '../stores/dragdropstore'
   import { createTodo } from './todos'
 
-  export let newTodoTitle: string
   export let column
 
+  const StateTransitions: Record<string, string[]> = {
+    'todo': ['ongoing'],
+    'ongoing': ['done', 'todo'],
+    'done': ['ongoing']
+  };
+
+  let newTodoTitle: string = ""
+
   function isValidTransition(fromState: string, toState: string) {
-    const StateTransitions: Record<string, string[]> = {
-      'todo': ['ongoing'],
-      'ongoing': ['done', 'todo'],
-      'done': ['ongoing']
-    };
-    return fromState === toState || StateTransitions[fromState]?.includes(toState);
+    return fromState === toState || StateTransitions[fromState]?.includes(toState)
   }
 </script>
 

@@ -1,9 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Column from '../lib/Column.svelte';
-  import { userStore } from '../stores/userstore';
   import type { Columnable, User } from '../lib/types';
-  import { getTodolist, createTodolist } from '../lib/todolists';
+  import { createTodolist } from '../lib/todolists';
+  import { getTodos } from '../lib/todos';
+  import { userStore } from '../stores/userstore';
+  import { todolistStore } from '../stores/todoliststore';
 
   onMount(async () => {
     try {
@@ -11,7 +13,7 @@
       if (!user) return;
 
       userStore.set(user)
-      getTodolist(user.lastUsedTodolistId)
+      getTodos(user.lastUsedTodolistId)
     } catch (err) {
       console.error('Failed to fetch user:', err);
     }
@@ -31,19 +33,9 @@
   const shareKey = "aws-msft-gcp"  // TODO fetch from the database
 
   async function handleNewList() {
-    if (!$userStore) return;
-
-    console.log("Current", $userStore.lastUsedTodolistId);
-
     const newList = await createTodolist();
-
-    userStore.update((user) => {
-      if (!user) return null;
-      return { ...user, lastUsedTodolistId: newList.id };
-    });
-    console.log($userStore.lastUsedTodolistId);
-
-    getTodolist($userStore.lastUsedTodolistId);
+    todolistStore.set(newList)
+    getTodos(newList.id);
   }
 
   async function handleShareList() {

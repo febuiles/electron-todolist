@@ -1,41 +1,34 @@
+import { get } from "svelte/store"
+
 import { AppHost } from "../../src/config"
-import { userStore } from "../stores/userstore";
-import { todoStore } from "../stores/todostore";
 
-
-import { get } from "svelte/store";
-
-export async function getTodolist(todolistId: number): Promise<void> {
-  const response = await fetch(`${AppHost}/todolists/${todolistId}`);
-  const todos = await response.json();
-  todoStore.set(todos);
-}
+import { todolistStore } from "../stores/todoliststore"
+import { userStore } from "../stores/userstore"
+import { todoStore } from "../stores/todostore"
 
 export async function createTodolist(): Promise<any> {
-  const user = get(userStore);
+  const user = get(userStore)
+
+  const todolist = await createRemote()
+  user.lastUsedTodolistId = todolist.id
+  userStore.set(user)
+  window.electron.ipcRenderer.invoke('update-user', get(userStore))
+  todoStore.set([])
+  return todolist
+}
+
+async function createRemote(): Promise<any> {
+  const user = get(userStore)
 
   if (!user || !user.id) {
-    throw new Error('Failed to create todolist: Invalid user');
+    throw new Error('Failed to create todolist: Invalid user')
   }
 
   const response = await fetch(`${AppHost}/todolists/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user_id: user.id }),
-  });
+  })
 
-  const todolist = await response.json();
-
-  userStore.update((user) => {
-    if (!user) return null;
-    console.log({ ...user, lastUsedTodolistId: todolist.id });
-
-    return { ...user, lastUsedTodolistId: todolist.id };
-  });
-
-  await window.electron.ipcRenderer.invoke('update-user', get(userStore));
-
-  todoStore.set([]);
-
-  return todolist;
+  return response.json()
 }

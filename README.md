@@ -70,7 +70,8 @@ would have worked on these (I'd still use SQLite though).
   no authentication/authorization. All the endpoints are open to
   manipulation.
 * The Electron application needs more tests.
+* multistage docker build
 * I iterated very quickly on this, and am pretty certain there's dead
   code inside the project.
 * The code here is not ARIA-compliant.
-
+* nice chance to learn CRDTs

@@ -4,6 +4,12 @@ import { userStore } from '../stores/userstore';
 import type { ColumnType } from './types';
 import { AppHost } from '../../src/config';
 
+export async function getTodos(todolistId: number): Promise<void> {
+  const response = await fetch(`${AppHost}/todolists/${todolistId}`);
+  const todos = await response.json();
+  todoStore.set(todos);
+}
+
 export async function createTodo(targetColumn: ColumnType, newTodoTitle: string): Promise<void> {
   const user = get(userStore);
 
