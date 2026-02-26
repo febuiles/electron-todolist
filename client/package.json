@@ -33,7 +33,7 @@
     "autoprefixer": "^10.4.20",
     "electron": "33.2.0",
     "globals": "^15.0.0",
-    "svelte": "^5.0.0",
+    "svelte": "^5.53.0",
     "svelte-check": "^4.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.0.0",
